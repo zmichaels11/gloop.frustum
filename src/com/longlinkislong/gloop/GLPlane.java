@@ -163,4 +163,28 @@ public class GLPlane {
         
         return d + p.asGLVecF().dot(normal);
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if(this == other) {
+            return true;
+        } else if(other instanceof GLPlane) {
+            final GLPlane oPlane = (GLPlane) other;
+            
+            return GLTools.compare(oPlane.d, this.d, GLTools.MEDIUMP) 
+                    && this.normal.equals(oPlane.normal) 
+                    && this.point.equals(oPlane.point);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 67 * hash + Objects.hashCode(this.normal);
+        hash = 67 * hash + Objects.hashCode(this.point);
+        hash = 67 * hash + Float.floatToIntBits(this.d);
+        return hash;
+    }
 }

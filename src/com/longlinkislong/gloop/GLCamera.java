@@ -527,4 +527,24 @@ public final class GLCamera implements GLFrustum {
                 data[e43] - data[e13],
                 data[e44] - data[e14]);
     }
+    
+    @Override
+    public boolean equals(Object other) {
+        if(this == other) {
+            return true;
+        } else if(other instanceof GLCamera) {
+            final GLCamera oCam = (GLCamera) other;
+            
+            return oCam.getViewMatrix().equals(this.getViewMatrix());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 41 * hash + Objects.hashCode(this.view);
+        return hash;
+    }
 }
