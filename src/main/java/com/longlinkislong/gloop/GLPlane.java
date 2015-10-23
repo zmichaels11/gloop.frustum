@@ -105,7 +105,7 @@ public class GLPlane {
         }
         GLVec ab = a.minus(b);
         GLVec cb = c.minus(b);
-        this.normal.set(ab.multiply(cb).normalize());
+        this.normal.set(ab.cross(cb).normalize());
         point.set(b);
 
         d = -normal.dot(point);
