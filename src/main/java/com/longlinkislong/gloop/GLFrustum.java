@@ -20,7 +20,7 @@ package com.longlinkislong.gloop;
 /**
  * Object interface used for calculating Frustum culling
  * @author Runouw
- * @since 14.07.08
+ * @since 15.11.05
  * @version J1.8
  */
 public interface GLFrustum {
@@ -49,12 +49,5 @@ public interface GLFrustum {
      * @return Distance
      * @since 14.07.25
      */
-    public float getDistanceFromPlane(final Plane plane, final GLVec pos);
-    /**
-     * Calculates a view-projection matrix and updates the frustum.
-     * @param pMat Projection matrix
-     * @return view-projection matrix
-     * @since 14.07.25
-     */
-    public GLMat getViewProjectionMatrix(final GLMat pMat);    
+    public float getDistanceFromPlane(final Plane plane, final GLVec pos);  
 }

@@ -20,6 +20,7 @@ package com.longlinkislong.gloop;
 /**
  * A simple implementation of GLFrustum that can turn a GLMat into culling
  * planes.
+ * @since 15.11.05
  * @author Robert
  */
 public class GLPlanes implements GLFrustum{
@@ -50,16 +51,13 @@ public class GLPlanes implements GLFrustum{
             this.planes[i] = new GLPlane();
         }
     }
-    public GLPlanes(final GLMat frustum) {
-        this.planes = new GLPlane[6];
-        for (int i = 0; i < 6; i++) {
-            this.planes[i] = new GLPlane();
-        }
+    public GLPlanes(final GLMat matrix) {
+        this();
         
-        setPlanes(frustum);
+        setPlanes(matrix);
     }
     
-    private void setPlanes(final GLMat frustum) {
+    public final void setPlanes(final GLMat frustum) {
         this.proj.set(frustum);
         
         final GLMat4F in0 = frustum.asGLMatF().asGLMat4F();
@@ -124,8 +122,11 @@ public class GLPlanes implements GLFrustum{
         return this.planes[plane.value].distance(pos);
     }
 
-    @Override
-    public GLMat getViewProjectionMatrix(GLMat pMat) {
+    public GLMat getMatrix() {
         return proj.copyTo(Matrices.DEFAULT_FACTORY);
+    }
+    
+    public static GLPlanes createCullPlanes(GLMat4F mat){
+        return new GLPlanes(mat);
     }
 }

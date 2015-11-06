@@ -17,30 +17,14 @@ import java.util.Objects;
  * Camera manipulation class for easy of use 3D camera control.
  *
  * @author Robert Hewitt
- * @since 14.07.08
+ * @since 15.11.05
  * @version J1.8
  */
-public final class GLCamera implements GLFrustum {
+public final class GLCamera {
     private static final int X = 0;
     private static final int Y = 1;
     private static final int Z = 2;
-    private static final int E11 = 0;
-    private static final int E12 = 1;
-    private static final int E13 = 2;
-    private static final int E14 = 3;
-    private static final int E21 = 4;
-    private static final int E22 = 5;
-    private static final int E23 = 6;
-    private static final int E24 = 7;
-    private static final int E31 = 8;
-    private static final int E32 = 9;
-    private static final int E33 = 10;
-    private static final int E34 = 11;
-    private static final int E41 = 12;
-    private static final int E42 = 13;
-    private static final int E43 = 14;
-    private static final int E44 = 15;
-
+    
     private final GLVec3F pos;
     private final double[] r = {0d, 0d, 0d};
     private final GLPlane[] planes;
@@ -145,7 +129,7 @@ public final class GLCamera implements GLFrustum {
      * @return Camera's view matrix
      * @since 14.07.25
      */
-    public final GLMat4F getViewMatrix() {
+    private final GLMat4F calculateViewMatrix() {
         if (this.translate == null) {
             final GLVec3F n = this.pos.negative();
             this.translate = GLMat4F.translation(n.x(), n.y(), n.z()).asStaticMat();
@@ -432,12 +416,6 @@ public final class GLCamera implements GLFrustum {
         return this.r[Z];
     }
 
-    @Override
-    public float getDistanceFromPlane(GLFrustum.Plane plane, GLVec pos) {
-        return this.planes[plane.value].distance(pos);
-    }
-
-    private int projectionHash = -1;
     private final GLMat4F cachedViewProjMat = new StaticMat4F(Matrices.DEFAULT_FACTORY);
 
     /**
@@ -446,86 +424,19 @@ public final class GLCamera implements GLFrustum {
      * references a cached view-projection matrix which may be edited outside of
      * this class. Any changes to the matrix will result in recalculation.
      *
-     * @param pMat Projection matrix
-     * @return View-Projection matrix
+     * @return View matrix
      * @throws NullPointerException if pMat is null.
      * @since 14.07.25
      */
-    @Override
-    public GLMat4F getViewProjectionMatrix(final GLMat pMat) throws NullPointerException {
-        if (pMat == null) {
-            throw new NullPointerException();
-        }
-        final int testHash = pMat.hashCode();
-
-        if (testHash != projectionHash || this.changed) {
-            final GLMat4F result = this.getViewMatrix().multiply(pMat);
-
-            this.setPlanes(result);
+    public GLMat4F getViewMatrix() {
+        if (this.changed) {
+            final GLMat4F result = this.calculateViewMatrix();
+            
             this.cachedViewProjMat.set(result);
-            this.projectionHash = testHash;
             this.changed = false;
         }
 
-        return cachedViewProjMat;
-    }
-
-    private void setPlanes(final GLMat frustum) {
-        final GLMat4F in0 = frustum.asGLMatF().asGLMat4F();
-        final GLMat4F temp = in0.transpose(); // TODO: use the un-transposed data instead.
-
-        //<editor-fold defaultstate="collapsed" desc="temp">
-        final float[] data = temp.data();
-        final int offset = temp.offset();
-
-        final int e41 = E41 + offset;
-        final int e42 = E42 + offset;
-        final int e43 = E43 + offset;
-        final int e44 = E44 + offset;
-        final int e31 = E31 + offset;
-        final int e32 = E32 + offset;
-        final int e33 = E33 + offset;
-        final int e34 = E34 + offset;
-        final int e21 = E21 + offset;
-        final int e22 = E22 + offset;
-        final int e23 = E23 + offset;
-        final int e24 = E24 + offset;
-        final int e11 = E11 + offset;
-        final int e12 = E12 + offset;
-        final int e13 = E13 + offset;
-        final int e14 = E14 + offset;
-        //</editor-fold>
-
-        planes[GLFrustum.Plane.NEAR.value].setFromCoefficients(
-                data[e41] + data[e31],
-                data[e42] + data[e32],
-                data[e43] + data[e33],
-                data[e44] + data[e34]);
-        planes[GLFrustum.Plane.FAR.value].setFromCoefficients(
-                data[e41] - data[e31],
-                data[e42] - data[e32],
-                data[e43] - data[e33],
-                data[e44] - data[e34]);
-        planes[GLFrustum.Plane.BOTTOM.value].setFromCoefficients(
-                data[e41] + data[e21],
-                data[e42] + data[e22],
-                data[e43] + data[e23],
-                data[e44] + data[e24]);
-        planes[GLFrustum.Plane.TOP.value].setFromCoefficients(
-                data[e41] - data[e21],
-                data[e42] - data[e22],
-                data[e43] - data[e23],
-                data[e44] - data[e24]);
-        planes[GLFrustum.Plane.LEFT.value].setFromCoefficients(
-                data[e41] + data[e11],
-                data[e42] + data[e12],
-                data[e43] + data[e13],
-                data[e44] + data[e14]);
-        planes[GLFrustum.Plane.RIGHT.value].setFromCoefficients(
-                data[e41] - data[e11],
-                data[e42] - data[e12],
-                data[e43] - data[e13],
-                data[e44] - data[e14]);
+        return cachedViewProjMat.copyTo(Matrices.DEFAULT_FACTORY);
     }
     
     @Override
@@ -544,7 +455,8 @@ public final class GLCamera implements GLFrustum {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 41 * hash + Objects.hashCode(this.view);
+        hash = 31 * hash + Objects.hashCode(getViewMatrix());
         return hash;
     }
+    
 }
