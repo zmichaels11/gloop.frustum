@@ -38,17 +38,17 @@ publishing {
             groupId = "${group}"
             
             // get version number for outputting to artifactory
-            version = "${versionUrl}?name=gloop".toURL().text.trim()
+            version = "${versionUrl}?name=${project.name}".toURL().text.trim()
         }    
     }
 }
-task incrementBuild << {
-    println "executing url: ${versionUrl}?name=gloop&increment=1";
-    def version = "${versionUrl}?name=gloop&increment=1".toURL().text.trim()
+task incrementBuild << {        
+    def version = "${versionUrl}?name=${project.name}&increment=1".toURL().text.trim()
     
     println "incremented build to $version"
 }
+
 task version << {
-    def version = "${versionUrl}?name=gloop".toURL().text.trim()
+    def version = "${versionUrl}?name=${project.name}".toURL().text.trim()
     println version
 }
