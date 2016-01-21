@@ -19,35 +19,40 @@ package com.longlinkislong.gloop;
 
 /**
  * Object interface used for calculating Frustum culling
+ *
  * @author Runouw
  * @since 15.11.05
  * @version J1.8
  */
 public interface GLFrustum {
+
     /**
      * Planes that construct a frustum
+     *
      * @since 14.07.25
      * @version J1.8
      */
-    public static enum Plane{
+    public static enum Plane {
         TOP(0),
         BOTTOM(1),
         LEFT(2),
         RIGHT(3),
         NEAR(4),
         FAR(5);
-        Plane(final int v){
+
+        Plane(final int v) {
             this.value = v;
         }
         public final int value;
     }
-      
+
     /**
      * Calculates the distance from the specified plane
+     *
      * @param plane Plane to calculate distance from
      * @param pos Point to calculate distance to
      * @return Distance
      * @since 14.07.25
      */
-    public float getDistanceFromPlane(final Plane plane, final GLVec pos);  
+    public double getDistanceFromPlane(final Plane plane, final GLVec3 pos);
 }

@@ -23,14 +23,14 @@ import java.util.Objects;
  */
 public class GLPlane {
 
-    private final GLVec3F normal = new StaticVec3F(Vectors.DEFAULT_FACTORY);
-    private final GLVec3F point = new StaticVec3F(Vectors.DEFAULT_FACTORY);
+    private final GLVec3D normal = new StaticVec3D(Vectors.DEFAULT_FACTORY);
+    private final GLVec3D point = new StaticVec3D(Vectors.DEFAULT_FACTORY);
 
     /*
      * Cached value (for plane equation: ax + by + cz + d = 0)
      * d = -dot(normal, point);
      */
-    private float d;
+    private double d;
 
     /**
      * Constructs a new GLPlane. Default value is a plane located at origin with
@@ -39,7 +39,7 @@ public class GLPlane {
      * @since 14.07.08
      */
     public GLPlane() {
-        this.normal.set(0f, 1f, 0f);
+        this.normal.set(0.0, 1.0, 0.0);
     }
 
     /**
@@ -48,13 +48,9 @@ public class GLPlane {
      * @param a First point
      * @param b Second point
      * @param c Third point
-     * @throws NullPointerException if a is null, b is null, c is null.
      * @since 14.07.08
      */
-    public GLPlane(final GLVec a, final GLVec b, final GLVec c) throws NullPointerException {
-        if (a == null || b == null || c == null) {
-            throw new NullPointerException();
-        }
+    public GLPlane(final GLVec3 a, final GLVec3 b, final GLVec3 c) {
         this.setFromPoints(a, b, c);
     }
 
@@ -63,13 +59,9 @@ public class GLPlane {
      *
      * @param normal Normal vector
      * @param point Position vector
-     * @throws NullPointerException if normal is null or if point is null.
      * @since 14.07.08
      */
-    public GLPlane(final GLVec normal, final GLVec point) throws NullPointerException {
-        if (normal == null || point == null) {
-            throw new NullPointerException();
-        }
+    public GLPlane(final GLVec3 normal, final GLVec3 point) {
         this.setNormalAndPoint(normal, point);
     }
 
@@ -78,13 +70,9 @@ public class GLPlane {
      * same data.
      *
      * @param plane Plane to copy data from.
-     * @throws NullPointerException if plane is null.
      * @since 14.07.08
      */
-    public GLPlane(final GLPlane plane) throws NullPointerException {
-        if (plane == null) {
-            throw new NullPointerException();
-        }
+    public GLPlane(final GLPlane plane) {
         this.normal.set(plane.normal);
         this.point.set(plane.point);
         this.d = plane.d;
@@ -96,19 +84,23 @@ public class GLPlane {
      * @param a First point
      * @param b Second point
      * @param c third point
-     * @throws NullPointerException if a is null, b is null, or c is null.
      * @since 14.07.08
      */
-    public final void setFromPoints(final GLVec a, final GLVec b, final GLVec c) throws NullPointerException {
-        if (a == null || b == null || c == null) {
-            throw new NullPointerException();
-        }
-        GLVec ab = a.minus(b);
-        GLVec cb = c.minus(b);
-        this.normal.set(ab.cross(cb).normalize());
-        point.set(b);
+    public final void setFromPoints(
+            final GLVec3 a,
+            final GLVec3 b,
+            final GLVec3 c) {
 
-        d = -normal.dot(point);
+        final GLVec3D _a = a.asGLVec3D();
+        final GLVec3D _b = b.asGLVec3D();
+        final GLVec3D _c = c.asGLVec3D();
+        
+        final GLVec3D _ab = _a.minus(_b);
+        final GLVec3D _cb = _c.minus(_b);
+
+        this.normal.set(_ab.cross(_cb).normalize());
+        this.point.set(_b);
+        this.d = -this.normal.dot(this.point);
     }
 
     /**
@@ -116,17 +108,15 @@ public class GLPlane {
      *
      * @param normal Direction that is orthogonal to the plane (up).
      * @param point Position of the plane
-     * @throws NullPointerException if normal is null or point is null.
      * @since 14.07.08
      */
-    public final void setNormalAndPoint(final GLVec normal, final GLVec point) throws NullPointerException {
-        if (normal == null || point == null) {
-            throw new NullPointerException();
-        }
-        this.normal.set(normal);
-        this.point.set(point);
+    public final void setNormalAndPoint(
+            final GLVec3 normal,
+            final GLVec3 point) {
 
-        d = -this.normal.dot(this.point);
+        this.normal.set(normal.asGLVec3D());
+        this.point.set(point.asGLVec3D());
+        this.d = -this.normal.dot(this.point);
     }
 
     /**
@@ -136,17 +126,29 @@ public class GLPlane {
      * @param b Second coefficient
      * @param c Third coefficient
      * @param d Fourth coefficient
-     * @throws ArithmeticException if a is NaN, b is NaN, c is NaN, or d is NaN.
      * @since 14.07.08
      */
-    public final void setFromCoefficients(final float a, final float b, final float c, final float d) throws ArithmeticException {
-        if (Float.isNaN(a) || Float.isNaN(b) || Float.isNaN(c) || Float.isNaN(d)) {
-            throw new ArithmeticException();
-        }
-        normal.set(a, b, c);
-        float l = (float) normal.length();
-        normal.set(normal.normalize());
+    public final void setFromCoefficients(
+            final double a,
+            final double b,
+            final double c,
+            final double d) {
 
+        if (!Double.isFinite(a)) {
+            throw new ArithmeticException("Coefficient [a] is not finite!");
+        } else if (!Double.isFinite(b)) {
+            throw new ArithmeticException("Coefficient [b] is not finite!");
+        } else if (!Double.isFinite(c)) {
+            throw new ArithmeticException("Coefficient [c] is not finite!");
+        } else if (!Double.isFinite(d)) {
+            throw new ArithmeticException("Coefficient [d] is not finite!");
+        }
+        
+        this.normal.set(a, b, c);
+
+        final double l = this.normal.length();
+
+        this.normal.set(this.normal.normalize());
         this.d = d / l;
     }
 
@@ -154,37 +156,34 @@ public class GLPlane {
      * Calculates the distance a point is from the plane
      *
      * @param p Point
-     * @return Distance
-     * @throws NullPointerException if p is null.
+     * @return Distance     
      * @since 14.07.08
      */
-    public final float distance(final GLVec p) throws NullPointerException {
-        Objects.requireNonNull(p);                
-        
-        return d + p.asGLVecF().dot(normal);
+    public final double distance(final GLVec3 p) {        
+        return this.d + p.asGLVec3D().dot(this.normal);
     }
-    
+
     @Override
     public boolean equals(final Object other) {
-        if(this == other) {
+        if (this == other) {
             return true;
-        } else if(other instanceof GLPlane) {
+        } else if (other instanceof GLPlane) {
             final GLPlane oPlane = (GLPlane) other;
-            
-            return GLTools.compare(oPlane.d, this.d, GLTools.MEDIUMP) 
-                    && this.normal.equals(oPlane.normal) 
+
+            return GLTools.compare(oPlane.d, this.d, GLTools.MEDIUMP)
+                    && this.normal.equals(oPlane.normal)
                     && this.point.equals(oPlane.point);
         } else {
             return false;
         }
-    }
+    }    
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 67 * hash + Objects.hashCode(this.normal);
-        hash = 67 * hash + Objects.hashCode(this.point);
-        hash = 67 * hash + Float.floatToIntBits(this.d);
+        int hash = 7;
+        hash = 11 * hash + Objects.hashCode(this.normal);
+        hash = 11 * hash + Objects.hashCode(this.point);
+        hash = 11 * hash + (int) (Double.doubleToLongBits(this.d) ^ (Double.doubleToLongBits(this.d) >>> 32));
         return hash;
     }
 }

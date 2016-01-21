@@ -12,13 +12,15 @@
 
 package com.longlinkislong.gloop;
 
+import static com.longlinkislong.gloop.Vectors.X;
+import static com.longlinkislong.gloop.Vectors.Y;
+import static com.longlinkislong.gloop.Vectors.Z;
+import java.util.Objects;
+
 /**
  * Collection of Boundary calculation functions for use with GLFrustum
  */
-public interface GLBounds {
-    public static final int X = 0;
-    public static final int Y = 1;
-    public static final int Z = 2;
+public interface GLBounds {    
     /**
      * Boundary statuses compared against the formula.
      */
@@ -36,13 +38,10 @@ public interface GLBounds {
      * @param frustum Frustum object
      * @param center Point's center
      * @param radius Radius of point
-     * @return Status
-     * @throws NullPointerException if frustum or center is null
-     * @throws IndexOutOfBoundsException if radius does not have enough elements.
-     * @throws ArithmeticException if radius is NaN     
+     * @return Status     
      * @since 14.07.24
      */
-    public Status inside(final GLFrustum frustum, final GLVec center, final float... radius) throws NullPointerException, IndexOutOfBoundsException, ArithmeticException;
+    public Status inside(final GLFrustum frustum, final GLVec3 center, final double... radius);
            
         
     /**
@@ -50,17 +49,23 @@ public interface GLBounds {
      * The ellipse bounds requires a 2D radius.
      * @since 14.07.24
      */
-    public static final GLBounds ELLIPSE = (final GLFrustum frustum, final GLVec center, final float... radius) -> { if(frustum == null || center == null){
-            throw new NullPointerException();
-        } else if(radius.length < 2) {
-            throw new IndexOutOfBoundsException();
-        } else if(Float.isNaN(radius[X]) || Float.isNaN(radius[Y])){
-            throw new ArithmeticException();
+    public static final GLBounds ELLIPSE = (
+            final GLFrustum frustum, 
+            final GLVec3 center, final double... radius) -> {
+        
+        Objects.requireNonNull(frustum);
+        Objects.requireNonNull(center);
+                
+        if(!Double.isFinite(radius[X])) {
+            throw new ArithmeticException("X-radius must be finite!");
+        } else if(!Double.isFinite(radius[Y])) {
+            throw new ArithmeticException("Y-radius must be finite!");
         }
 
         Status result = Status.INSIDE;
         for(GLFrustum.Plane plane : GLFrustum.Plane.values()){            
-            float distance;
+            double distance;
+            
             switch(plane){
                 case NEAR:
                 case FAR:
@@ -83,10 +88,11 @@ public interface GLBounds {
                         return Status.OUTSIDE;
                     } else if(distance < radius[X]){
                         result = Status.INTERSECT;
-                    }
+                    }                    
                     break;
             }            
         }
+        
         return result;
      };
 
@@ -95,20 +101,25 @@ public interface GLBounds {
      * The circular bounds requires a 1D radius.
      * @since 14.07.24
      */
-    public static final GLBounds CIRCLE = (final GLFrustum frustum, final GLVec center, final float... radius) -> { if(frustum == null || center == null){
-            throw new NullPointerException();
-        } else if(radius.length == 0){
-            throw new IndexOutOfBoundsException();
-        } else if(Float.isNaN(radius[X])){
-            throw new ArithmeticException();
-        }
+    public static final GLBounds CIRCLE = (
+            final GLFrustum frustum, 
+            final GLVec3 center, 
+            final double... radius) -> { 
+        
+        Objects.requireNonNull(frustum);
+        Objects.requireNonNull(center);
+                
+        if(!Double.isFinite(radius[X])) {
+            throw new ArithmeticException("Radius must be finite!");
+        }       
 
         Status result = Status.INSIDE;
         for(GLFrustum.Plane plane : GLFrustum.Plane.values()){
             if(plane == GLFrustum.Plane.NEAR || plane == GLFrustum.Plane.FAR){
                 continue;
             }
-            final float distance = frustum.getDistanceFromPlane(plane, center);
+            
+            final double distance = frustum.getDistanceFromPlane(plane, center);
 
             if(distance < -radius[X]){
                 return Status.OUTSIDE;
@@ -125,17 +136,25 @@ public interface GLBounds {
      * The ellipsoid bounds requires a 3D radius.
      * @since 14.07.25
      */
-    public static final GLBounds ELLIPSOID = (final GLFrustum frustum, final GLVec center, final float... radius) -> { if(frustum == null || center == null){
-            throw new NullPointerException();
-        } else if(radius.length < 3){
-            throw new IndexOutOfBoundsException();
-        } else if(Float.isNaN(radius[X]) || Float.isNaN(radius[Y]) || Float.isNaN(radius[Z])){
-            throw new ArithmeticException();
-        }
+    public static final GLBounds ELLIPSOID = (
+            final GLFrustum frustum, 
+            final GLVec3 center, 
+            final double... radius) -> { 
+        
+        Objects.requireNonNull(frustum);
+        Objects.requireNonNull(center);
+        
+        if(!Double.isFinite(radius[X])) {
+            throw new ArithmeticException("X-radius must be finite!");
+        } else if(!Double.isFinite(radius[Y])) {
+            throw new ArithmeticException("Y-radius must be finite!");
+        } else if(!Double.isFinite(radius[Z])) {
+            throw new ArithmeticException("Z-radius must be finite!");
+        }        
 
         Status result = Status.INSIDE;
         for(GLFrustum.Plane plane : GLFrustum.Plane.values()){
-            final float distance = frustum.getDistanceFromPlane(plane, center);
+            final double distance = frustum.getDistanceFromPlane(plane, center);
             
             switch(plane){
                 case LEFT:
@@ -164,6 +183,7 @@ public interface GLBounds {
                     break;
             }
         }
+        
         return result;
      };
 
@@ -172,17 +192,21 @@ public interface GLBounds {
      * The sphere bounds requires a 1D radius.
      * @since 14.07.24
      */
-    public static final GLBounds SPHERE = (final GLFrustum frustum, final GLVec center, final float... radius) -> { if(frustum == null || center == null){
-            throw new NullPointerException();
-        } else if(radius.length == 0){
-            throw new IndexOutOfBoundsException();        
-        } else if(Float.isNaN(radius[X])){
-            throw new ArithmeticException();
+    public static final GLBounds SPHERE = (
+            final GLFrustum frustum, 
+            final GLVec3 center, 
+            final double... radius) -> { 
+        
+        Objects.requireNonNull(frustum);
+        Objects.requireNonNull(center);
+        
+        if(!Double.isFinite(radius[X])) {
+            throw new ArithmeticException("Radius must be finite!");
         }
 
         Status result = Status.INSIDE;
         for(GLFrustum.Plane plane : GLFrustum.Plane.values()){
-            final float distance = frustum.getDistanceFromPlane(plane, center);
+            final double distance = frustum.getDistanceFromPlane(plane, center);
             
             if(distance < -radius[X]){
                 return Status.OUTSIDE;
@@ -190,6 +214,7 @@ public interface GLBounds {
                 result = Status.INTERSECT;
             }
         }
+        
         return result;
      };    
 }

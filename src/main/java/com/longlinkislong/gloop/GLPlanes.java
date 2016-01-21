@@ -20,10 +20,12 @@ package com.longlinkislong.gloop;
 /**
  * A simple implementation of GLFrustum that can turn a GLMat into culling
  * planes.
+ *
  * @since 15.11.05
  * @author Robert
  */
-public class GLPlanes implements GLFrustum{
+public class GLPlanes implements GLFrustum {
+
     private static final int E11 = 0;
     private static final int E12 = 1;
     private static final int E13 = 2;
@@ -40,10 +42,10 @@ public class GLPlanes implements GLFrustum{
     private static final int E42 = 13;
     private static final int E43 = 14;
     private static final int E44 = 15;
-    
+
     private final GLPlane[] planes;
-    
-    private final GLMat4F proj = StaticMat4F.create();
+
+    private final GLMat4D proj = StaticMat4D.create();
 
     public GLPlanes() {
         this.planes = new GLPlane[6];
@@ -51,20 +53,21 @@ public class GLPlanes implements GLFrustum{
             this.planes[i] = new GLPlane();
         }
     }
-    public GLPlanes(final GLMat matrix) {
+
+    public GLPlanes(final GLMat4 matrix) {
         this();
-        
+
         setPlanes(matrix);
     }
-    
-    public final void setPlanes(final GLMat frustum) {
-        this.proj.set(frustum);
-        
-        final GLMat4F in0 = frustum.asGLMatF().asGLMat4F();
-        final GLMat4F temp = in0.transpose(); // TODO: use the un-transposed data instead.
+
+    public final void setPlanes(final GLMat4 frustum) {
+        this.proj.set(frustum.asGLMat4D());
+
+        final GLMat4D in0 = frustum.asGLMatD().asGLMat4D();
+        final GLMat4D temp = in0.transpose(); // TODO: use the un-transposed data instead.
 
         //<editor-fold defaultstate="collapsed" desc="temp">
-        final float[] data = temp.data();
+        final double[] data = temp.data();
         final int offset = temp.offset();
 
         final int e41 = E41 + offset;
@@ -118,15 +121,15 @@ public class GLPlanes implements GLFrustum{
     }
 
     @Override
-    public float getDistanceFromPlane(Plane plane, GLVec pos) {
-        return this.planes[plane.value].distance(pos);
+    public double getDistanceFromPlane(final Plane plane, final GLVec3 pos) {
+        return this.planes[plane.value].distance(pos.asGLVec3D());
     }
 
     public GLMat getMatrix() {
         return proj.copyTo(Matrices.DEFAULT_FACTORY);
     }
-    
-    public static GLPlanes createCullPlanes(GLMat4F mat){
+
+    public static GLPlanes createCullPlanes(GLMat4 mat) {
         return new GLPlanes(mat);
     }
 }

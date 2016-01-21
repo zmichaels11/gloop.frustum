@@ -21,17 +21,18 @@ import java.util.Objects;
  * @version J1.8
  */
 public final class GLCamera {
+
     private static final int X = 0;
     private static final int Y = 1;
     private static final int Z = 2;
-    
-    private final GLVec3F pos;
+
+    private final GLVec3D pos = GLVec3D.create().asGLVec3D();
     private final double[] r = {0d, 0d, 0d};
     private final GLPlane[] planes;
 
-    private GLMat4F translate = null, rotx = null, roty = null, rotz = null;
-    private GLMat4F rotXYZ = null, rotYZ = null;
-    private GLMat4F view = null;
+    private GLMat4D translate = null, rotx = null, roty = null, rotz = null;
+    private GLMat4D rotXYZ = null, rotYZ = null;
+    private GLMat4D view = null;
     protected boolean changed = true;
 
     /**
@@ -40,9 +41,9 @@ public final class GLCamera {
      *
      * @since 14.07.08
      */
-    public GLCamera() {
-        this.pos = new StaticVec3F(Vectors.DEFAULT_FACTORY);
+    public GLCamera() {        
         this.planes = new GLPlane[6];
+        
         for (int i = 0; i < 6; i++) {
             this.planes[i] = new GLPlane();
         }
@@ -54,14 +55,13 @@ public final class GLCamera {
      *
      * @param pos Position of the camera
      * @since 14.07.25
-     * @throws NullPointerException if pos is null.
      */
-    public GLCamera(final GLVec pos) throws NullPointerException {
-        if (pos == null) {
-            throw new NullPointerException();
-        }
-        this.pos = new StaticVec3F(Vectors.DEFAULT_FACTORY, pos);
+    public GLCamera(final GLVec3 pos) {
+        Objects.requireNonNull(pos);
+
+        this.pos.set(pos.asGLVec3D());
         this.planes = new GLPlane[6];
+
         for (int i = 0; i < 6; i++) {
             this.planes[i] = new GLPlane();
         }
@@ -74,30 +74,34 @@ public final class GLCamera {
      * @param pos Position of the camera
      * @param center Point the camera is looking at
      * @since 14.07.08
-     * @throws NullPointerException if pos or center is null.
      */
-    public GLCamera(final GLVec pos, final GLVec center) throws NullPointerException {
-        if (pos == null || center == null) {
-            throw new NullPointerException();
-        }
+    public GLCamera(final GLVec3 pos, final GLVec3 center) {
+        Objects.requireNonNull(pos);
+        Objects.requireNonNull(center);
 
-        this.pos = new StaticVec3F(Vectors.DEFAULT_FACTORY, pos);
-        this.lookAt(center);
+        this.pos.set(pos.asGLVec3D());
+        this.lookAt(center.asGLVec3D());
         this.planes = new GLPlane[6];
         for (int i = 0; i < 6; i++) {
             this.planes[i] = new GLPlane();
         }
     }
 
-    public GLCamera(final GLCamera otherCamera) throws NullPointerException {
-        if (otherCamera == null) {
-            throw new NullPointerException();
-        }
-        this.pos = new StaticVec3F(Vectors.DEFAULT_FACTORY, otherCamera.pos);
+    /**
+     * Copies parameters from another camera object.
+     *
+     * @param otherCamera the camera to copy the values from.
+     * @since 14.07.08
+     */
+    public GLCamera(final GLCamera otherCamera) {
+        Objects.requireNonNull(otherCamera);
+
+        this.pos.set(otherCamera.pos);
         this.setRX(otherCamera.r[X]);
         this.setRY(otherCamera.r[Y]);
         this.setRZ(otherCamera.r[Z]);
         this.planes = new GLPlane[6];
+        
         for (int i = 0; i < 6; i++) {
             this.planes[i] = new GLPlane();
         }
@@ -110,10 +114,10 @@ public final class GLCamera {
      * @throws NullPointerException if center is null.
      * @since 14.07.08
      */
-    public final void lookAt(final GLVec center) throws NullPointerException {
+    public final void lookAt(final GLVec3 center) {
         Objects.requireNonNull(center);
 
-        final GLVec3F d = this.pos.minus(center);
+        final GLVec3D d = this.pos.minus(center.asGLVec3D());
 
         this.r[X] = -Math.atan2(d.x(), d.z());
         this.r[Y] = Math.atan2(d.y(), Math.sqrt(d.x() * d.x() + d.z() * d.z()));
@@ -129,24 +133,28 @@ public final class GLCamera {
      * @return Camera's view matrix
      * @since 14.07.25
      */
-    private final GLMat4F calculateViewMatrix() {
+    private GLMat4D calculateViewMatrix() {
         if (this.translate == null) {
-            final GLVec3F n = this.pos.negative();
-            this.translate = GLMat4F.translation(n.x(), n.y(), n.z()).asStaticMat();
+            final GLVec3D n = this.pos.negative();
+            this.translate = GLMat4D.translation(n.x(), n.y(), n.z()).asStaticMat();
             this.view = null;
         }
+
         if (this.rotx == null) {
-            this.rotx = GLMat4F.rotateY((float) this.r[X]).asStaticMat();
+            this.rotx = GLMat4D.rotateY(this.r[X]).asStaticMat();
             this.rotXYZ = null;
         }
+
         if (this.roty == null) {
-            this.roty = GLMat4F.rotateX((float) this.r[Y]).asStaticMat();
+            this.roty = GLMat4D.rotateX(this.r[Y]).asStaticMat();
             this.rotYZ = null;
         }
+
         if (this.rotz == null) {
-            this.rotz = GLMat4F.rotateZ((float) this.r[Z]).asStaticMat();
+            this.rotz = GLMat4D.rotateZ(this.r[Z]).asStaticMat();
             this.rotYZ = null;
         }
+
         if (this.rotYZ == null) {
             this.rotYZ = this.roty.multiply(this.rotz).asStaticMat();
             this.rotXYZ = null;
@@ -155,6 +163,7 @@ public final class GLCamera {
             this.rotXYZ = this.rotx.multiply(this.rotYZ).asStaticMat();
             this.view = null;
         }
+
         if (this.view == null) {
             this.changed = true;
             this.view = this.translate.multiply(this.rotXYZ).asStaticMat();
@@ -167,21 +176,18 @@ public final class GLCamera {
      * Moves the camera forward (relative to camera) a specified distance
      *
      * @param distance Distance to move the camera forwards
-     * @throws ArithmeticException if distance is not finite.
      * @since 14.07.08
      */
-    public final void stepForwards(final float distance) throws ArithmeticException {
-        if (!Float.isFinite(distance)) {
-            throw new ArithmeticException();
+    public final void stepForwards(final double distance) {
+        if (!Double.isFinite(distance)) {
+            throw new ArithmeticException("Distance is not a finite value!");
         }
-        GLVec3F rVec = GLVec3F.create();
 
-        rVec.set(
-                (float) (Math.sin(this.r[X]) * Math.cos(r[Y])),
-                -(float) (Math.sin(this.r[Y])),
-                -(float) (Math.cos(this.r[X]) * Math.cos(this.r[Y])));
-
-        rVec = rVec.scale(distance);
+        final GLVec3D rVec = GLVec3D.create(
+                Math.sin(this.r[X]) * Math.cos(r[Y]),
+                -Math.sin(this.r[Y]),
+                -Math.cos(this.r[X]) * Math.cos(this.r[Y]))
+                .scale(distance);
 
         this.pos.set(this.pos.plus(rVec));
 
@@ -193,17 +199,14 @@ public final class GLCamera {
      * Moves the camera upward (relative to camera) a specified distance
      *
      * @param distance Distance to move camera upwards
-     * @throws ArithmeticException if distance is not finite.
      * @since 14.07.08
      */
-    public final void stepUpwards(final float distance) throws ArithmeticException {
-        if (!Float.isFinite(distance)) {
-            throw new ArithmeticException();
+    public final void stepUpwards(final double distance) {
+        if (!Double.isFinite(distance)) {
+            throw new ArithmeticException("Distance is not a finite value!");
         }
-        GLVec3F temp = GLVec3F.create(0f, 1f, 0f);
 
-        temp = temp.scale(distance);
-        this.pos.set(this.pos.plus(temp));
+        this.pos.set(this.pos.plus(GLVec3D.create(0.0, distance, 0.0)));
         this.translate = null;
         this.changed = true;
     }
@@ -212,18 +215,19 @@ public final class GLCamera {
      * Moves the camera sideways (relative to camera) a specified distance
      *
      * @param distance Distance to move camera sideways
-     * @throws ArithmeticException if distance is not finite.
      * @since 14.07.08
      */
-    public final void stepSideways(final float distance) throws ArithmeticException {
-        if (!Float.isFinite(distance)) {
-            throw new ArithmeticException();
+    public final void stepSideways(final double distance) {
+        if (!Double.isFinite(distance)) {
+            throw new ArithmeticException("Distance is not a finite value!");
         }
-        GLVec3F temp = GLVec3F.create(
-                (float) (Math.sin(r[X] + Math.PI / 2.0)),
-                0f,
-                -(float) (Math.cos(r[X] + Math.PI / 2.0)));
-        temp = temp.scale(distance);
+
+        final GLVec3D temp = GLVec3D.create(
+                Math.sin(r[X] + Math.PI * 0.5),
+                0.0,
+                Math.cos(r[X] + Math.PI * 0.5))
+                .scale(distance);
+
         this.pos.set(this.pos.plus(temp));
         this.translate = null;
         this.changed = true;
@@ -235,21 +239,21 @@ public final class GLCamera {
      * @return Position of the camera as a GLVec
      * @since 14.07.08
      */
-    public final GLVec3F getPosition() {
-        return GLVec3F.create().set(this.pos);
+    public final GLVec3D getPosition() {
+        return this.pos.copyTo();
     }
 
     /**
      * Increases the rotation of the camera along the X-axis
      *
      * @param v Any value type to rotate the camera.
-     * @throws ArithmeticException if v is not finite
      * @since 14.07.08
      */
-    public final void incRX(final double v) throws ArithmeticException {
+    public final void incRX(final double v) {
         if (!Double.isFinite(v)) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("Incrememnt value is not finite!");
         }
+
         this.r[X] += v;
         this.rotx = null;
         this.changed = true;
@@ -259,13 +263,13 @@ public final class GLCamera {
      * Increases the rotation of the camera along the Y-axis
      *
      * @param v Any value type to rotate the camera
-     * @throws ArithmeticException if v is not finite.
      * @since 14.07.08
      */
-    public final void incRY(final double v) throws ArithmeticException {
+    public final void incRY(final double v) {
         if (!Double.isFinite(v)) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("Increment value is not finite!");
         }
+
         this.r[Y] += v;
         this.roty = null;
         this.changed = true;
@@ -275,13 +279,13 @@ public final class GLCamera {
      * Increases the rotation of the camera along the Z-axis
      *
      * @param v Any value type to rotate the camera
-     * @throws ArithmeticException if v is not finite
      * @since 14.07.08
      */
-    public final void incRZ(final double v) throws ArithmeticException {
+    public final void incRZ(final double v) {
         if (!Double.isFinite(v)) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("Increment value is not finite!");
         }
+
         this.r[Z] += v;
         this.rotz = null;
         this.changed = true;
@@ -291,13 +295,13 @@ public final class GLCamera {
      * Sets the rotation of the camera along the X-axis
      *
      * @param v X-rotation value
-     * @throws ArithmeticException if v is not finite.
      * @since 14.07.08
      */
-    public final void setRX(final double v) throws ArithmeticException {
+    public final void setRX(final double v) {
         if (!Double.isFinite(v)) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("Rotation value is not finite!");
         }
+
         this.r[X] = v;
         this.rotx = null;
         this.changed = true;
@@ -307,13 +311,13 @@ public final class GLCamera {
      * Sets the rotation of the camera along the Y-axis
      *
      * @param v Y-rotation value
-     * @throws ArithmeticException if v is not finite.
      * @since 14.07.08
      */
-    public final void setRY(final double v) throws ArithmeticException {
+    public final void setRY(final double v) {
         if (!Double.isFinite(v)) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("Rotation value is not finite!");
         }
+
         this.r[Y] = v;
         this.roty = null;
         this.changed = true;
@@ -322,13 +326,12 @@ public final class GLCamera {
     /**
      * Sets the rotation of the camera along the Z-axis
      *
-     * @param v Z-rotation value
-     * @throws ArithmeticException if v is not finite.
+     * @param v Z-rotation value     
      * @since 14.07.08
      */
-    public final void setRZ(final double v) throws ArithmeticException {
+    public final void setRZ(final double v) {
         if (!Double.isFinite(v)) {
-            throw new ArithmeticException();
+            throw new ArithmeticException("Rotation value is not finite!");
         }
         this.r[Z] = v;
         this.rotz = null;
@@ -338,14 +341,12 @@ public final class GLCamera {
     /**
      * Sets the position of the camera
      *
-     * @param pos Position value
-     * @throws NullPointerException if pos is null.
+     * @param pos Position value     
      * @since 14.07.08
      */
-    public final void setPosition(final GLVec pos) throws NullPointerException {
-        if (pos == null) {
-            throw new NullPointerException();
-        }
+    public final void setPosition(final GLVec<?> pos) {
+        Objects.requireNonNull(pos);
+
         this.pos.set(pos);
         this.translate = null;
         this.changed = true;
@@ -358,7 +359,7 @@ public final class GLCamera {
      * @since 14.07.08
      */
     @SafeVarargs
-    public final void setPosition(final float... v) {
+    public final void setPosition(final double... v) {
         this.pos.set(v, 0, v.length);
         this.translate = null;
     }
@@ -368,18 +369,16 @@ public final class GLCamera {
      *
      * @param array Array containing a position vector
      * @param offset Offset to start reading from the array
-     * @param size Number of elements to read from the array.
-     * @throws NullPointerException if array is null.
-     * @throws IndexOutOfBoundsException if offset is negative, size is
-     * negative, or size is greater than array.length - offset.
+     * @param size Number of elements to read from the array. negative, or size
+     * is greater than array.length - offset.
      * @since 14.07.08
      */
-    public final void setPosition(final float[] array, final int offset, final int size) throws NullPointerException, IndexOutOfBoundsException {
-        if (array == null) {
-            throw new NullPointerException();
-        } else if (offset < 0 || size < 0 || size > array.length - offset) {
-            throw new IndexOutOfBoundsException();
-        }
+    public final void setPosition(
+            final double[] array,
+            final int offset,
+            final int size) {
+
+        Objects.requireNonNull(array);        
 
         this.pos.set(array, offset, size);
         this.translate = null;
@@ -416,7 +415,7 @@ public final class GLCamera {
         return this.r[Z];
     }
 
-    private final GLMat4F cachedViewProjMat = new StaticMat4F(Matrices.DEFAULT_FACTORY);
+    private final GLMat4D cachedViewProjMat = new StaticMat4D(Matrices.DEFAULT_FACTORY);
 
     /**
      * Retrieves the concatenation of the view matrix with the supplied
@@ -428,24 +427,24 @@ public final class GLCamera {
      * @throws NullPointerException if pMat is null.
      * @since 14.07.25
      */
-    public GLMat4F getViewMatrix() {
+    public GLMat4D getViewMatrix() {
         if (this.changed) {
-            final GLMat4F result = this.calculateViewMatrix();
-            
+            final GLMat4D result = this.calculateViewMatrix();
+
             this.cachedViewProjMat.set(result);
             this.changed = false;
         }
 
-        return cachedViewProjMat.copyTo(Matrices.DEFAULT_FACTORY);
+        return cachedViewProjMat.copyTo();
     }
-    
+
     @Override
     public boolean equals(Object other) {
-        if(this == other) {
+        if (this == other) {
             return true;
-        } else if(other instanceof GLCamera) {
+        } else if (other instanceof GLCamera) {
             final GLCamera oCam = (GLCamera) other;
-            
+
             return oCam.getViewMatrix().equals(this.getViewMatrix());
         } else {
             return false;
@@ -458,5 +457,5 @@ public final class GLCamera {
         hash = 31 * hash + Objects.hashCode(getViewMatrix());
         return hash;
     }
-    
+
 }
