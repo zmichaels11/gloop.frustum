@@ -225,7 +225,7 @@ public final class GLCamera {
         final GLVec3D temp = GLVec3D.create(
                 Math.sin(r[X] + Math.PI * 0.5),
                 0.0,
-                Math.cos(r[X] + Math.PI * 0.5))
+                -Math.cos(r[X] + Math.PI * 0.5))
                 .scale(distance);
 
         this.pos.set(this.pos.plus(temp));
