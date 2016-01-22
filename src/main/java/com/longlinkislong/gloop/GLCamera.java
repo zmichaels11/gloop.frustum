@@ -360,8 +360,7 @@ public final class GLCamera {
      */
     @SafeVarargs
     public final void setPosition(final double... v) {
-        this.pos.set(v, 0, v.length);
-        this.translate = null;
+        this.setPosition(v, 0, v.length);
     }
 
     /**
