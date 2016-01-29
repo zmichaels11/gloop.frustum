@@ -16,6 +16,8 @@ import static com.longlinkislong.gloop.Vectors.X;
 import static com.longlinkislong.gloop.Vectors.Y;
 import static com.longlinkislong.gloop.Vectors.Z;
 import java.util.Objects;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MarkerFactory;
 
 /**
  * Collection of Boundary calculation functions for use with GLFrustum
@@ -57,8 +59,16 @@ public interface GLBounds {
         Objects.requireNonNull(center);
                 
         if(!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[X]);
             throw new ArithmeticException("X-radius must be finite!");
         } else if(!Double.isFinite(radius[Y])) {
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[Y]);
             throw new ArithmeticException("Y-radius must be finite!");
         }
 
@@ -110,6 +120,10 @@ public interface GLBounds {
         Objects.requireNonNull(center);
                 
         if(!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[X]);
             throw new ArithmeticException("Radius must be finite!");
         }       
 
@@ -145,10 +159,22 @@ public interface GLBounds {
         Objects.requireNonNull(center);
         
         if(!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[X]);
             throw new ArithmeticException("X-radius must be finite!");
         } else if(!Double.isFinite(radius[Y])) {
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[Y]);
             throw new ArithmeticException("Y-radius must be finite!");
         } else if(!Double.isFinite(radius[Z])) {
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[Z]);
             throw new ArithmeticException("Z-radius must be finite!");
         }        
 
@@ -200,7 +226,11 @@ public interface GLBounds {
         Objects.requireNonNull(frustum);
         Objects.requireNonNull(center);
         
-        if(!Double.isFinite(radius[X])) {
+        if(!Double.isFinite(radius[X])) {            
+            LoggerFactory.getLogger(GLBounds.class).error(
+                    MarkerFactory.getMarker("GLOOP"), 
+                    "Received non finite value: {}!", 
+                    radius[X]);
             throw new ArithmeticException("Radius must be finite!");
         }
 

@@ -12,6 +12,10 @@
 package com.longlinkislong.gloop;
 
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * Object that represents a plane. Defined from a position vector and a normal
@@ -22,7 +26,8 @@ import java.util.Objects;
  * @version J1.8
  */
 public class GLPlane {
-
+    private static final Marker MARKER = MarkerFactory.getMarker("GLOOP");
+    private static final Logger LOGGER = LoggerFactory.getLogger(GLPlane.class);
     private final GLVec3D normal = new StaticVec3D(Vectors.DEFAULT_FACTORY);
     private final GLVec3D point = new StaticVec3D(Vectors.DEFAULT_FACTORY);
 
@@ -135,12 +140,16 @@ public class GLPlane {
             final double d) {
 
         if (!Double.isFinite(a)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", a);
             throw new ArithmeticException("Coefficient [a] is not finite!");
         } else if (!Double.isFinite(b)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", b);
             throw new ArithmeticException("Coefficient [b] is not finite!");
         } else if (!Double.isFinite(c)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", c);
             throw new ArithmeticException("Coefficient [c] is not finite!");
         } else if (!Double.isFinite(d)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", d);
             throw new ArithmeticException("Coefficient [d] is not finite!");
         }
         

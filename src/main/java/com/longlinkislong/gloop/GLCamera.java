@@ -12,6 +12,10 @@
 package com.longlinkislong.gloop;
 
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * Camera manipulation class for easy of use 3D camera control.
@@ -21,7 +25,9 @@ import java.util.Objects;
  * @version J1.8
  */
 public final class GLCamera {
-
+    private static final Marker MARKER = MarkerFactory.getMarker("GLOOP");
+    private static final Logger LOGGER = LoggerFactory.getLogger(GLCamera.class);
+    
     private static final int X = 0;
     private static final int Y = 1;
     private static final int Z = 2;
@@ -180,6 +186,7 @@ public final class GLCamera {
      */
     public final void stepForwards(final double distance) {
         if (!Double.isFinite(distance)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", distance);
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
@@ -203,6 +210,7 @@ public final class GLCamera {
      */
     public final void stepUpwards(final double distance) {
         if (!Double.isFinite(distance)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", distance);
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
@@ -219,6 +227,7 @@ public final class GLCamera {
      */
     public final void stepSideways(final double distance) {
         if (!Double.isFinite(distance)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", distance);
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
@@ -251,6 +260,7 @@ public final class GLCamera {
      */
     public final void incRX(final double v) {
         if (!Double.isFinite(v)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", v);
             throw new ArithmeticException("Incrememnt value is not finite!");
         }
 
@@ -267,6 +277,7 @@ public final class GLCamera {
      */
     public final void incRY(final double v) {
         if (!Double.isFinite(v)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", v);
             throw new ArithmeticException("Increment value is not finite!");
         }
 
@@ -283,6 +294,7 @@ public final class GLCamera {
      */
     public final void incRZ(final double v) {
         if (!Double.isFinite(v)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", v);
             throw new ArithmeticException("Increment value is not finite!");
         }
 
@@ -299,6 +311,7 @@ public final class GLCamera {
      */
     public final void setRX(final double v) {
         if (!Double.isFinite(v)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", v);
             throw new ArithmeticException("Rotation value is not finite!");
         }
 
@@ -315,6 +328,7 @@ public final class GLCamera {
      */
     public final void setRY(final double v) {
         if (!Double.isFinite(v)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", v);
             throw new ArithmeticException("Rotation value is not finite!");
         }
 
@@ -331,6 +345,7 @@ public final class GLCamera {
      */
     public final void setRZ(final double v) {
         if (!Double.isFinite(v)) {
+            LOGGER.error(MARKER, "Received non finite value: {}!", v);
             throw new ArithmeticException("Rotation value is not finite!");
         }
         this.r[Z] = v;
