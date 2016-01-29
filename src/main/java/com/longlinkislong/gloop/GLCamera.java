@@ -32,7 +32,7 @@ public final class GLCamera {
     private static final int Y = 1;
     private static final int Z = 2;
 
-    private final GLVec3D pos = GLVec3D.create().asGLVec3D();
+    private final GLVec3D pos = GLVec3D.create().asStaticVec();
     private final double[] r = {0d, 0d, 0d};
     private final GLPlane[] planes;
 
