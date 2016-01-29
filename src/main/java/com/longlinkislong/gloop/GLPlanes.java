@@ -17,6 +17,11 @@
  */
 package com.longlinkislong.gloop;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
+
 /**
  * A simple implementation of GLFrustum that can turn a GLMat into culling
  * planes.
@@ -25,6 +30,8 @@ package com.longlinkislong.gloop;
  * @author Robert
  */
 public class GLPlanes implements GLFrustum {
+    private static final Marker MARKER = MarkerFactory.getMarker("GLOOP");
+    private static final Logger LOGGER = LoggerFactory.getLogger(GLPlanes.class);
 
     private static final int E11 = 0;
     private static final int E12 = 1;
@@ -88,6 +95,7 @@ public class GLPlanes implements GLFrustum {
         final int e14 = E14 + offset;
         //</editor-fold>
 
+        try {
         planes[GLFrustum.Plane.NEAR.value].setFromCoefficients(
                 data[e41] + data[e31],
                 data[e42] + data[e32],
@@ -118,6 +126,20 @@ public class GLPlanes implements GLFrustum {
                 data[e42] - data[e12],
                 data[e43] - data[e13],
                 data[e44] - data[e14]);
+        } catch(ArithmeticException ex) {
+            LOGGER.debug(MARKER, "Undefined frustum calculated!");
+            LOGGER.trace(MARKER, ex.getMessage(), ex);
+            this.isUndefined = true;
+        }
+        
+        this.isUndefined = false;
+    }
+    
+    private boolean isUndefined = false;
+    
+    @Override
+    public boolean isUndefined() {
+        return this.isUndefined;
     }
 
     @Override

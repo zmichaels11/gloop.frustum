@@ -9,7 +9,6 @@
  *    Robert Hewitt - initial API and implementation and/or initial documentation
  *    Zachary Michaels - update and maintain API
  */
-
 package com.longlinkislong.gloop;
 
 import static com.longlinkislong.gloop.Vectors.X;
@@ -22,229 +21,269 @@ import org.slf4j.MarkerFactory;
 /**
  * Collection of Boundary calculation functions for use with GLFrustum
  */
-public interface GLBounds {    
+public interface GLBounds {
+
     /**
      * Boundary statuses compared against the formula.
      */
-    public static enum Status{
-        /** Point is considered inside the frustum */
+    public static enum Status {
+        /**
+         * Point is considered inside the frustum
+         */
         INSIDE,
-        /** Point is outside of the frustum */
+        /**
+         * Point is outside of the frustum
+         */
         OUTSIDE,
-        /** Point intersects with the frustum */
-        INTERSECT
+        /**
+         * Point intersects with the frustum
+         */
+        INTERSECT,
+        /**
+         * Point testing failed
+         *
+         * @since 16.01.29
+         */
+        UNDEFINED
     }
-        
+
     /**
-     * Function that calculates the status of the point in relation to the frustum
+     * Function that calculates the status of the point in relation to the
+     * frustum
+     *
      * @param frustum Frustum object
      * @param center Point's center
      * @param radius Radius of point
-     * @return Status     
+     * @return Status
      * @since 14.07.24
      */
     public Status inside(final GLFrustum frustum, final GLVec3 center, final double... radius);
-           
-        
+
     /**
-     * Functional interface for calculating the bounds using an elliptical frustum.
-     * The ellipse bounds requires a 2D radius.
+     * Functional interface for calculating the bounds using an elliptical
+     * frustum. The ellipse bounds requires a 2D radius.
+     *
      * @since 14.07.24
      */
     public static final GLBounds ELLIPSE = (
-            final GLFrustum frustum, 
+            final GLFrustum frustum,
             final GLVec3 center, final double... radius) -> {
-        
+
         Objects.requireNonNull(frustum);
         Objects.requireNonNull(center);
-                
-        if(!Double.isFinite(radius[X])) {
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+
+        if (frustum.isUndefined()) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received undefined frustum!");
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite X-value: {}!",
                     radius[X]);
-            throw new ArithmeticException("X-radius must be finite!");
-        } else if(!Double.isFinite(radius[Y])) {
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[Y])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite Y-value: {}!",
                     radius[Y]);
-            throw new ArithmeticException("Y-radius must be finite!");
+
+            return Status.UNDEFINED;
         }
 
         Status result = Status.INSIDE;
-        for(GLFrustum.Plane plane : GLFrustum.Plane.values()){            
+        for (GLFrustum.Plane plane : GLFrustum.Plane.values()) {
             double distance;
-            
-            switch(plane){
+
+            switch (plane) {
                 case NEAR:
                 case FAR:
                     continue;
                 case TOP:
                 case BOTTOM:
                     distance = frustum.getDistanceFromPlane(plane, center);
-                    
-                    if (distance < -radius[Y]){
+
+                    if (distance < -radius[Y]) {
                         return Status.OUTSIDE;
-                    } else if(distance < radius[Y]){
+                    } else if (distance < radius[Y]) {
                         result = Status.INTERSECT;
                     }
                     break;
                 case LEFT:
                 case RIGHT:
                     distance = frustum.getDistanceFromPlane(plane, center);
-                    
-                    if (distance < -radius[X]){
+
+                    if (distance < -radius[X]) {
                         return Status.OUTSIDE;
-                    } else if(distance < radius[X]){
+                    } else if (distance < radius[X]) {
                         result = Status.INTERSECT;
-                    }                    
+                    }
                     break;
-            }            
+            }
         }
-        
+
         return result;
-     };
+    };
 
     /**
      * Functional interface for calculating the bounds using a circular frustum.
      * The circular bounds requires a 1D radius.
+     *
      * @since 14.07.24
      */
     public static final GLBounds CIRCLE = (
-            final GLFrustum frustum, 
-            final GLVec3 center, 
-            final double... radius) -> { 
-        
+            final GLFrustum frustum,
+            final GLVec3 center,
+            final double... radius) -> {
+
         Objects.requireNonNull(frustum);
         Objects.requireNonNull(center);
-                
-        if(!Double.isFinite(radius[X])) {
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+
+        if (frustum.isUndefined()) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received undefined frustum!");
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite radius value: {}!",
                     radius[X]);
-            throw new ArithmeticException("Radius must be finite!");
-        }       
+            return Status.UNDEFINED;
+        }
 
         Status result = Status.INSIDE;
-        for(GLFrustum.Plane plane : GLFrustum.Plane.values()){
-            if(plane == GLFrustum.Plane.NEAR || plane == GLFrustum.Plane.FAR){
+        for (GLFrustum.Plane plane : GLFrustum.Plane.values()) {
+            if (plane == GLFrustum.Plane.NEAR || plane == GLFrustum.Plane.FAR) {
                 continue;
             }
-            
+
             final double distance = frustum.getDistanceFromPlane(plane, center);
 
-            if(distance < -radius[X]){
+            if (distance < -radius[X]) {
                 return Status.OUTSIDE;
-            }else if(distance < radius[X]){
+            } else if (distance < radius[X]) {
                 return Status.INTERSECT;
             }
         }
 
         return result;
-     };
+    };
 
     /**
-     * Functional interface for calculating the bounds using an ellipsoid function
-     * The ellipsoid bounds requires a 3D radius.
+     * Functional interface for calculating the bounds using an ellipsoid
+     * function The ellipsoid bounds requires a 3D radius.
+     *
      * @since 14.07.25
      */
     public static final GLBounds ELLIPSOID = (
-            final GLFrustum frustum, 
-            final GLVec3 center, 
-            final double... radius) -> { 
-        
+            final GLFrustum frustum,
+            final GLVec3 center,
+            final double... radius) -> {
+
         Objects.requireNonNull(frustum);
         Objects.requireNonNull(center);
-        
-        if(!Double.isFinite(radius[X])) {
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+
+        if (frustum.isUndefined()) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received undefined frustum!");
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite X-value: {}!",
                     radius[X]);
-            throw new ArithmeticException("X-radius must be finite!");
-        } else if(!Double.isFinite(radius[Y])) {
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[Y])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite radius Y-value: {}!",
                     radius[Y]);
-            throw new ArithmeticException("Y-radius must be finite!");
-        } else if(!Double.isFinite(radius[Z])) {
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[Z])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite Z-value: {}!",
                     radius[Z]);
-            throw new ArithmeticException("Z-radius must be finite!");
-        }        
+            return Status.UNDEFINED;
+        }
 
         Status result = Status.INSIDE;
-        for(GLFrustum.Plane plane : GLFrustum.Plane.values()){
+        for (GLFrustum.Plane plane : GLFrustum.Plane.values()) {
             final double distance = frustum.getDistanceFromPlane(plane, center);
-            
-            switch(plane){
+
+            switch (plane) {
                 case LEFT:
                 case RIGHT:
-                    if(distance < -radius[X]){
+                    if (distance < -radius[X]) {
                         return Status.OUTSIDE;
-                    } else if(distance < radius[X]){
+                    } else if (distance < radius[X]) {
                         result = Status.INTERSECT;
                     }
                     break;
                 case TOP:
                 case BOTTOM:
-                    if(distance < -radius[Y]){
+                    if (distance < -radius[Y]) {
                         return Status.OUTSIDE;
-                    } else if(distance < radius[Y]){
+                    } else if (distance < radius[Y]) {
                         result = Status.INTERSECT;
                     }
                     break;
                 case NEAR:
                 case FAR:
-                    if(distance < -radius[Z]){
+                    if (distance < -radius[Z]) {
                         return Status.OUTSIDE;
-                    } else if(distance < radius[Z]){
+                    } else if (distance < radius[Z]) {
                         result = Status.INTERSECT;
                     }
                     break;
             }
         }
-        
+
         return result;
-     };
+    };
 
     /**
-     * Functional interface for calculating the bounds using a spherical frustum.
-     * The sphere bounds requires a 1D radius.
+     * Functional interface for calculating the bounds using a spherical
+     * frustum. The sphere bounds requires a 1D radius.
+     *
      * @since 14.07.24
      */
     public static final GLBounds SPHERE = (
-            final GLFrustum frustum, 
-            final GLVec3 center, 
-            final double... radius) -> { 
-        
+            final GLFrustum frustum,
+            final GLVec3 center,
+            final double... radius) -> {
+
         Objects.requireNonNull(frustum);
         Objects.requireNonNull(center);
-        
-        if(!Double.isFinite(radius[X])) {            
-            LoggerFactory.getLogger(GLBounds.class).error(
-                    MarkerFactory.getMarker("GLOOP"), 
-                    "Received non finite value: {}!", 
+
+        if (frustum.isUndefined()) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received undefined frustum!");
+            return Status.UNDEFINED;
+        } else if (!Double.isFinite(radius[X])) {
+            LoggerFactory.getLogger(GLBounds.class).debug(
+                    MarkerFactory.getMarker("GLOOP"),
+                    "Received non finite radius value: {}!",
                     radius[X]);
-            throw new ArithmeticException("Radius must be finite!");
+            return Status.UNDEFINED;
         }
 
         Status result = Status.INSIDE;
-        for(GLFrustum.Plane plane : GLFrustum.Plane.values()){
+        for (GLFrustum.Plane plane : GLFrustum.Plane.values()) {
             final double distance = frustum.getDistanceFromPlane(plane, center);
-            
-            if(distance < -radius[X]){
+
+            if (distance < -radius[X]) {
                 return Status.OUTSIDE;
-            }else if(distance < radius[X]){
+            } else if (distance < radius[X]) {
                 result = Status.INTERSECT;
             }
         }
-        
+
         return result;
-     };    
+    };
 }

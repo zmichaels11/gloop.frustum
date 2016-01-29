@@ -54,5 +54,13 @@ public interface GLFrustum {
      * @return Distance
      * @since 14.07.25
      */
-    public double getDistanceFromPlane(final Plane plane, final GLVec3 pos);
+    double getDistanceFromPlane(final Plane plane, final GLVec3 pos);
+
+    /**
+     * Checks if the GLFrustum is undefined.
+     *
+     * @return true if the frustum is undefined.
+     * @since 16.01.29
+     */
+    boolean isUndefined();
 }
