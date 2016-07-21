@@ -194,10 +194,10 @@ public final class GLCamera {
                 Math.cos(this.r[X]) * Math.cos(this.r[Y]));
     }
     public final GLVec3D getUp(){
-        return GLVec3D.create(0, 1, 1);
+        return GLVec3D.create(0, 1, 0);
     }
     public final GLVec3D getDown(){
-        return GLVec3D.create(0, -1, 1);
+        return GLVec3D.create(0, -1, 0);
     }
     public final GLVec3D getRight(){
         return GLVec3D.create(
