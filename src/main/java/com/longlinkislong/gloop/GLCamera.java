@@ -179,33 +179,33 @@ public final class GLCamera {
     }
 
     public final GLVec3D getDirection(){
-        return forwards();
+        return getForwards();
     }
-    public final GLVec3D forwards(){
+    public final GLVec3D getForwards(){
         return GLVec3D.create(
                 Math.sin(this.r[X]) * Math.cos(r[Y]),
                 -Math.sin(this.r[Y]),
                 -Math.cos(this.r[X]) * Math.cos(this.r[Y]));
     }
-    public final GLVec3D backwards(){
+    public final GLVec3D getBackwards(){
         return GLVec3D.create(
                 -Math.sin(this.r[X]) * Math.cos(r[Y]),
                 Math.sin(this.r[Y]),
                 Math.cos(this.r[X]) * Math.cos(this.r[Y]));
     }
-    public final GLVec3D up(){
+    public final GLVec3D getUp(){
         return GLVec3D.create(0, 1, 1);
     }
-    public final GLVec3D down(){
+    public final GLVec3D getDown(){
         return GLVec3D.create(0, -1, 1);
     }
-    public final GLVec3D right(){
+    public final GLVec3D getRight(){
         return GLVec3D.create(
                 Math.sin(r[X] + Math.PI * 0.5),
                 0.0,
                 -Math.cos(r[X] + Math.PI * 0.5));
     }
-    public final GLVec3D left(){
+    public final GLVec3D getLeft(){
         return GLVec3D.create(
                 -Math.sin(r[X] + Math.PI * 0.5),
                 0.0,
@@ -224,7 +224,7 @@ public final class GLCamera {
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
-        this.pos.set(this.pos.plus(this.forwards().scale(distance)));
+        this.pos.set(this.pos.plus(this.getForwards().scale(distance)));
 
         this.translate = null;
         this.changed = true;
@@ -242,7 +242,7 @@ public final class GLCamera {
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
-        this.pos.set(this.pos.plus(this.up().scale(distance)));
+        this.pos.set(this.pos.plus(this.getUp().scale(distance)));
         this.translate = null;
         this.changed = true;
     }
@@ -258,7 +258,7 @@ public final class GLCamera {
             LOGGER.error(MARKER, "Received non finite value: {}!", distance);
             throw new ArithmeticException("Distance is not a finite value!");
         }
-        this.pos.set(this.pos.plus(this.right().scale(distance)));
+        this.pos.set(this.pos.plus(this.getRight().scale(distance)));
         this.translate = null;
         this.changed = true;
     }
