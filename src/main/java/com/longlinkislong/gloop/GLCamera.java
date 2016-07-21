@@ -27,7 +27,7 @@ import org.slf4j.MarkerFactory;
 public final class GLCamera {
     private static final Marker MARKER = MarkerFactory.getMarker("GLOOP");
     private static final Logger LOGGER = LoggerFactory.getLogger(GLCamera.class);
-    
+
     private static final int X = 0;
     private static final int Y = 1;
     private static final int Z = 2;
@@ -47,9 +47,9 @@ public final class GLCamera {
      *
      * @since 14.07.08
      */
-    public GLCamera() {        
+    public GLCamera() {
         this.planes = new GLPlane[6];
-        
+
         for (int i = 0; i < 6; i++) {
             this.planes[i] = new GLPlane();
         }
@@ -107,7 +107,7 @@ public final class GLCamera {
         this.setRY(otherCamera.r[Y]);
         this.setRZ(otherCamera.r[Z]);
         this.planes = new GLPlane[6];
-        
+
         for (int i = 0; i < 6; i++) {
             this.planes[i] = new GLPlane();
         }
@@ -178,6 +178,40 @@ public final class GLCamera {
         return this.view;
     }
 
+    public final GLVec3D getDirection(){
+        return forwards();
+    }
+    public final GLVec3D forwards(){
+        return GLVec3D.create(
+                Math.sin(this.r[X]) * Math.cos(r[Y]),
+                -Math.sin(this.r[Y]),
+                -Math.cos(this.r[X]) * Math.cos(this.r[Y]));
+    }
+    public final GLVec3D backwards(){
+        return GLVec3D.create(
+                -Math.sin(this.r[X]) * Math.cos(r[Y]),
+                Math.sin(this.r[Y]),
+                Math.cos(this.r[X]) * Math.cos(this.r[Y]));
+    }
+    public final GLVec3D upwards(){
+        return GLVec3D.create(0, 1, 1);
+    }
+    public final GLVec3D downwards(){
+        return GLVec3D.create(0, -1, 1);
+    }
+    public final GLVec3D right(){
+        return GLVec3D.create(
+                Math.sin(r[X] + Math.PI * 0.5),
+                0.0,
+                -Math.cos(r[X] + Math.PI * 0.5));
+    }
+    public final GLVec3D left(){
+        return GLVec3D.create(
+                -Math.sin(r[X] + Math.PI * 0.5),
+                0.0,
+                Math.cos(r[X] + Math.PI * 0.5));
+    }
+
     /**
      * Moves the camera forward (relative to camera) a specified distance
      *
@@ -190,13 +224,7 @@ public final class GLCamera {
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
-        final GLVec3D rVec = GLVec3D.create(
-                Math.sin(this.r[X]) * Math.cos(r[Y]),
-                -Math.sin(this.r[Y]),
-                -Math.cos(this.r[X]) * Math.cos(this.r[Y]))
-                .scale(distance);
-
-        this.pos.set(this.pos.plus(rVec));
+        this.pos.set(this.pos.plus(this.forwards().scale(distance)));
 
         this.translate = null;
         this.changed = true;
@@ -214,7 +242,7 @@ public final class GLCamera {
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
-        this.pos.set(this.pos.plus(GLVec3D.create(0.0, distance, 0.0)));
+        this.pos.set(this.pos.plus(this.upwards().scale(distance)));
         this.translate = null;
         this.changed = true;
     }
@@ -230,14 +258,7 @@ public final class GLCamera {
             LOGGER.error(MARKER, "Received non finite value: {}!", distance);
             throw new ArithmeticException("Distance is not a finite value!");
         }
-
-        final GLVec3D temp = GLVec3D.create(
-                Math.sin(r[X] + Math.PI * 0.5),
-                0.0,
-                -Math.cos(r[X] + Math.PI * 0.5))
-                .scale(distance);
-
-        this.pos.set(this.pos.plus(temp));
+        this.pos.set(this.pos.plus(this.right().scale(distance)));
         this.translate = null;
         this.changed = true;
     }
@@ -340,7 +361,7 @@ public final class GLCamera {
     /**
      * Sets the rotation of the camera along the Z-axis
      *
-     * @param v Z-rotation value     
+     * @param v Z-rotation value
      * @since 14.07.08
      */
     public final void setRZ(final double v) {
@@ -356,7 +377,7 @@ public final class GLCamera {
     /**
      * Sets the position of the camera
      *
-     * @param pos Position value     
+     * @param pos Position value
      * @since 14.07.08
      */
     public final void setPosition(final GLVec<?> pos) {
@@ -392,7 +413,7 @@ public final class GLCamera {
             final int offset,
             final int size) {
 
-        Objects.requireNonNull(array);        
+        Objects.requireNonNull(array);
 
         this.pos.set(array, offset, size);
         this.translate = null;
