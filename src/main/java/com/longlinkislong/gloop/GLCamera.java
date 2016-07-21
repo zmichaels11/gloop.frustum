@@ -193,10 +193,10 @@ public final class GLCamera {
                 Math.sin(this.r[Y]),
                 Math.cos(this.r[X]) * Math.cos(this.r[Y]));
     }
-    public final GLVec3D upwards(){
+    public final GLVec3D up(){
         return GLVec3D.create(0, 1, 1);
     }
-    public final GLVec3D downwards(){
+    public final GLVec3D down(){
         return GLVec3D.create(0, -1, 1);
     }
     public final GLVec3D right(){
@@ -242,7 +242,7 @@ public final class GLCamera {
             throw new ArithmeticException("Distance is not a finite value!");
         }
 
-        this.pos.set(this.pos.plus(this.upwards().scale(distance)));
+        this.pos.set(this.pos.plus(this.up().scale(distance)));
         this.translate = null;
         this.changed = true;
     }
