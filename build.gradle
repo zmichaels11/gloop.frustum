@@ -9,10 +9,9 @@ sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
-    mavenCentral()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url 'http://jartifacts.longlinkislong.com/libs-snapshot' }
-    maven { url 'http://jartifacts.longlinkislong.com/libs-release' }
+    mavenCentral()    
+    maven { url 'http://jartifacts.longlinkislong.com/artifactory/libs-snapshot' }
+    maven { url 'http://jartifacts.longlinkislong.com/artifactory/libs-release' }
 }
 
 def getProjectVersion(projId) {
